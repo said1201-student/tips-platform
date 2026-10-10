@@ -1,0 +1,29 @@
+# ---- Dependencies ----
+node_modules/
+
+# ---- Build output ----
+.next/
+out/
+dist/
+build/
+
+# ---- Environment & secrets (NEVER commit) ----
+.env
+.env.local
+.env.production
+.env.development
+backend/.env
+
+# ---- Logs ----
+*.log
+npm-debug.log*
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ---- Misc ----
+*.tsbuildinfo
+next-env.d.ts
