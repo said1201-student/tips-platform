@@ -6,10 +6,12 @@ const { sendPasswordReset } = require("../services/emailService");
 const ApiError = require("../utils/ApiError");
 const { COOKIE_NAME } = require("../middleware/auth");
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  sameSite: isProduction ? "none" : "lax",
+  secure: isProduction,
   maxAge: 24 * 60 * 60 * 1000, // 1 day
   path: "/",
 };
@@ -19,8 +21,8 @@ const COOKIE_OPTIONS = {
 const SESSION_FLAG = "tip_session";
 const SESSION_FLAG_OPTIONS = {
   httpOnly: false,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  sameSite: isProduction ? "none" : "lax",
+  secure: isProduction,
   maxAge: COOKIE_OPTIONS.maxAge,
   path: "/",
 };
