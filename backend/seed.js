@@ -27,14 +27,27 @@ async function main() {
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     multipleStatements: true,
+    ssl:
+      process.env.DB_SSL === "true"
+        ? {
+            rejectUnauthorized: false,
+            ...(process.env.DB_SSL_CA ? { ca: process.env.DB_SSL_CA.replace(/\\n/g, "\n") } : {}),
+          }
+        : undefined,
   });
 
   console.log("Connected to MySQL.");
 
-  await connection.query(
-    `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
-  );
-  await connection.query(`USE \`${DB_NAME}\`;`);
+  try {
+    await connection.query(
+      `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+    );
+    await connection.query(`USE \`${DB_NAME}\`;`);
+  } catch (err) {
+    console.warn(`Could not create/select database automatically (${err.message}).`);
+    console.warn("Using the database provided by the connection credentials.");
+    await connection.changeUser({ database: DB_NAME });
+  }
   console.log(`Using database "${DB_NAME}".`);
 
   const schemaPath = path.join(__dirname, "..", "database", "schema.sql");
