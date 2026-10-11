@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 
-const MAIL_ENABLED = process.env.MAIL_ENABLED === "true";
+const env = (key, fallback = "") => (process.env[key] || fallback).trim();
+
+const MAIL_ENABLED = env("MAIL_ENABLED") === "true";
 
 let transporterPromise = null;
 
@@ -17,13 +19,14 @@ function getTransporter() {
   if (!transporterPromise) {
     transporterPromise = (async () => {
       if (process.env.MAIL_HOST) {
+        const port = Number(env("MAIL_PORT", "587"));
         return nodemailer.createTransport({
-          host: process.env.MAIL_HOST,
-          port: Number(process.env.MAIL_PORT || 587),
-          secure: Number(process.env.MAIL_PORT) === 465,
+          host: env("MAIL_HOST"),
+          port,
+          secure: port === 465,
           auth: {
-            user: process.env.MAIL_USER,
-            pass: process.env.MAIL_PASSWORD,
+            user: env("MAIL_USER"),
+            pass: env("MAIL_PASSWORD"),
           },
         });
       }
@@ -50,7 +53,7 @@ function getTransporter() {
  * instead of sending, so nothing sensitive is ever exposed in production logs.
  */
 async function sendMail({ to, subject, text, html }) {
-  const from = process.env.MAIL_FROM || "Tips Platform <no-reply@tipsplatform.test>";
+  const from = env("MAIL_FROM", "Tips Platform <no-reply@tipsplatform.test>");
 
   if (!MAIL_ENABLED) {
     if (process.env.NODE_ENV !== "production") {
@@ -75,7 +78,7 @@ async function sendMail({ to, subject, text, html }) {
 }
 
 function sendTipsterCredentials({ fullName, username, temporaryPassword, email }) {
-  const loginUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/login`;
+  const loginUrl = `${env("CLIENT_URL", "http://localhost:3000")}/login`;
   return sendMail({
     to: email,
     subject: "Your Tips Platform tipster account",

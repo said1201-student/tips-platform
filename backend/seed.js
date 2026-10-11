@@ -15,17 +15,18 @@ const path = require("path");
 const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
 
-const DB_NAME = process.env.DB_NAME || "tips_platform";
+const DB_NAME = (process.env.DB_NAME || "tips_platform").trim();
+const env = (key, fallback = "") => (process.env[key] || fallback).trim();
 
 const ADMIN_PASSWORD = "Admin@12345";
 const TRIAL_PASSWORD = "Tryit@123";
 
 async function main() {
   const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    port: Number(process.env.DB_PORT || 3306),
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
+    host: env("DB_HOST", "localhost"),
+    port: Number(env("DB_PORT", "3306")),
+    user: env("DB_USER", "root"),
+    password: env("DB_PASSWORD"),
     multipleStatements: true,
     ssl:
       process.env.DB_SSL === "true"

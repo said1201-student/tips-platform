@@ -1,5 +1,9 @@
 const mysql = require("mysql2/promise");
 
+// Trim accidental whitespace/tabs that can sneak in when pasting values
+// into a hosting provider's environment-variable form.
+const env = (key, fallback = "") => (process.env[key] || fallback).trim();
+
 // Managed MySQL providers (Aiven, PlanetScale, etc.) require TLS.
 // Set DB_SSL=true in production. DB_SSL_CA (optional) holds a PEM certificate.
 const ssl =
@@ -11,11 +15,11 @@ const ssl =
     : undefined;
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "tips_platform",
+  host: env("DB_HOST", "localhost"),
+  port: Number(env("DB_PORT", "3306")),
+  user: env("DB_USER", "root"),
+  password: env("DB_PASSWORD"),
+  database: env("DB_NAME", "tips_platform"),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
