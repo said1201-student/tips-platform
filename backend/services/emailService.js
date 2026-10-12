@@ -4,33 +4,71 @@ const env = (key, fallback = "") => (process.env[key] || fallback).trim();
 
 const MAIL_ENABLED = env("MAIL_ENABLED") === "true";
 
+/**
+ * Transport selection.
+ *
+ *   brevo | resend | sendgrid  -> HTTP APIs. These send over port 443, so they
+ *                                 work on hosts that block outbound SMTP ports
+ *                                 (e.g. Render free web services block 25/465/587).
+ *   smtp                       -> classic SMTP via Nodemailer. Great locally or
+ *                                 on hosts that still allow SMTP.
+ *   ethereal                   -> Nodemailer test mailbox (no real delivery).
+ *
+ * Set MAIL_PROVIDER explicitly, or leave it unset to auto-detect:
+ * an HTTP provider key wins, then MAIL_HOST, otherwise Ethereal.
+ */
+const PROVIDER = (() => {
+  const explicit = env("MAIL_PROVIDER").toLowerCase();
+  if (explicit) return explicit;
+  if (env("BREVO_API_KEY")) return "brevo";
+  if (env("RESEND_API_KEY")) return "resend";
+  if (env("SENDGRID_API_KEY")) return "sendgrid";
+  if (env("MAIL_HOST")) return "smtp";
+  return "ethereal";
+})();
+
+const FROM = env("MAIL_FROM", "Tips Platform <no-reply@tipsplatform.test>");
+
+function parseAddress(value) {
+  const match = value.match(/^\s*(.*?)\s*<\s*([^>]+)\s*>\s*$/);
+  if (match) return { name: match[1] || undefined, email: match[2] };
+  return { name: undefined, email: value };
+}
+
+async function postJson(url, headers, body, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw new Error(`${PROVIDER} API error ${res.status}: ${detail.slice(0, 300)}`);
+    }
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 let transporterPromise = null;
 
-/**
- * Builds the SMTP transport once, on first use.
- *
- * - If MAIL_HOST is set, it uses the real SMTP server from the environment.
- * - If MAIL_ENABLED=true but no MAIL_HOST is given, it falls back to an
- *   Ethereal test account (no signup needed). Ethereal captures the mail and
- *   gives a preview URL instead of delivering to a real inbox — perfect for a
- *   demo. Provide real SMTP creds to deliver for real.
- */
 function getTransporter() {
   if (!transporterPromise) {
     transporterPromise = (async () => {
-      if (process.env.MAIL_HOST) {
+      if (env("MAIL_HOST")) {
         const port = Number(env("MAIL_PORT", "587"));
         return nodemailer.createTransport({
           host: env("MAIL_HOST"),
           port,
           secure: port === 465,
-          auth: {
-            user: env("MAIL_USER"),
-            pass: env("MAIL_PASSWORD"),
-          },
+          auth: { user: env("MAIL_USER"), pass: env("MAIL_PASSWORD") },
         });
       }
-
       const account = await nodemailer.createTestAccount();
       console.log("\n──── Ethereal test mailbox created ────");
       console.log(`User: ${account.user}`);
@@ -47,14 +85,55 @@ function getTransporter() {
   return transporterPromise;
 }
 
+async function sendViaBrevo({ to, subject, text, html }) {
+  const key = env("BREVO_API_KEY");
+  if (!key) throw new Error("BREVO_API_KEY is not set.");
+  await postJson(
+    "https://api.brevo.com/v3/smtp/email",
+    { "api-key": key, accept: "application/json" },
+    {
+      sender: parseAddress(FROM),
+      to: [{ email: to }],
+      subject,
+      ...(text ? { textContent: text } : {}),
+      ...(html ? { htmlContent: html } : {}),
+    }
+  );
+}
+
+async function sendViaResend({ to, subject, text, html }) {
+  const key = env("RESEND_API_KEY");
+  if (!key) throw new Error("RESEND_API_KEY is not set.");
+  await postJson(
+    "https://api.resend.com/emails",
+    { Authorization: `Bearer ${key}` },
+    { from: FROM, to, subject, ...(text ? { text } : {}), ...(html ? { html } : {}) }
+  );
+}
+
+async function sendViaSendgrid({ to, subject, text, html }) {
+  const key = env("SENDGRID_API_KEY");
+  if (!key) throw new Error("SENDGRID_API_KEY is not set.");
+  const sender = parseAddress(FROM);
+  await postJson(
+    "https://api.sendgrid.com/v3/mail/send",
+    { Authorization: `Bearer ${key}` },
+    {
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: sender.email, ...(sender.name ? { name: sender.name } : {}) },
+      subject,
+      content: [
+        html ? { type: "text/html", value: html } : { type: "text/plain", value: text || "" },
+      ],
+    }
+  );
+}
+
 /**
- * Sends an email when MAIL_ENABLED=true.
- * During development (MAIL_ENABLED=false) it logs the message to the console
- * instead of sending, so nothing sensitive is ever exposed in production logs.
+ * Sends an email when MAIL_ENABLED=true. Throws on provider failure so callers
+ * can decide how to react.
  */
 async function sendMail({ to, subject, text, html }) {
-  const from = env("MAIL_FROM", "Tips Platform <no-reply@tipsplatform.test>");
-
   if (!MAIL_ENABLED) {
     if (process.env.NODE_ENV !== "production") {
       console.log("\n──── DEV EMAIL (not actually sent) ────");
@@ -63,18 +142,29 @@ async function sendMail({ to, subject, text, html }) {
       console.log(text || html);
       console.log("───────────────────────────────────────\n");
     }
-    return { delivered: false };
+    return { delivered: false, provider: "disabled" };
+  }
+
+  if (PROVIDER === "brevo") {
+    await sendViaBrevo({ to, subject, text, html });
+    return { delivered: true, provider: "brevo" };
+  }
+  if (PROVIDER === "resend") {
+    await sendViaResend({ to, subject, text, html });
+    return { delivered: true, provider: "resend" };
+  }
+  if (PROVIDER === "sendgrid") {
+    await sendViaSendgrid({ to, subject, text, html });
+    return { delivered: true, provider: "sendgrid" };
   }
 
   const transporter = await getTransporter();
-  const info = await transporter.sendMail({ from, to, subject, text, html });
-
+  const info = await transporter.sendMail({ from: FROM, to, subject, text, html });
   const previewUrl = nodemailer.getTestMessageUrl(info);
   if (previewUrl) {
     console.log(`\n📧 Email sent to ${to} — preview: ${previewUrl}\n`);
   }
-
-  return { delivered: true, previewUrl: previewUrl || null };
+  return { delivered: true, provider: PROVIDER, previewUrl: previewUrl || null };
 }
 
 function sendTipsterCredentials({ fullName, username, temporaryPassword, email }) {
@@ -109,4 +199,5 @@ module.exports = {
   sendTipsterCredentials,
   sendPasswordReset,
   MAIL_ENABLED,
+  PROVIDER,
 };

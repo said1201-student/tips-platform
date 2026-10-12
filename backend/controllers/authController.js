@@ -146,9 +146,13 @@ async function forgotPassword(req, res, next) {
 
     if (user && user.status === "active") {
       const token = createResetToken(user.id);
-      const base = process.env.CLIENT_URL || "http://localhost:3000";
+      const base = (process.env.CLIENT_URL || "http://localhost:3000").trim();
       const resetUrl = `${base}/reset-password?token=${token}`;
-      await sendPasswordReset({ to: user.email, resetUrl });
+      try {
+        await sendPasswordReset({ to: user.email, resetUrl });
+      } catch (err) {
+        console.error("Failed to send password reset email:", err.message);
+      }
     }
 
     res.json({ message: genericMessage });

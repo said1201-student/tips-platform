@@ -51,17 +51,26 @@ async function createTipster(req, res, next) {
       role: "tipster",
     });
 
-    await sendTipsterCredentials({
-      fullName,
-      username,
-      temporaryPassword,
-      email,
-    });
+    let emailDelivered = false;
+    try {
+      await sendTipsterCredentials({
+        fullName,
+        username,
+        temporaryPassword,
+        email,
+      });
+      emailDelivered = true;
+    } catch (err) {
+      console.error("Failed to send tipster credentials email:", err.message);
+    }
 
     res.status(201).json({
-      message: "Tipster created and credentials sent.",
+      message: emailDelivered
+        ? "Tipster created and credentials emailed."
+        : "Tipster created, but the email could not be sent.",
       tipster,
-      ...(isDev ? { temporaryPassword } : {}),
+      emailDelivered,
+      ...(isDev || !emailDelivered ? { temporaryPassword } : {}),
     });
   } catch (err) {
     next(err);
@@ -124,16 +133,25 @@ async function resetPassword(req, res, next) {
     const hash = await bcrypt.hash(temporaryPassword, 10);
     await userModel.updatePassword(target.id, hash);
 
-    await sendTipsterCredentials({
-      fullName: target.full_name,
-      username: target.username,
-      temporaryPassword,
-      email: target.email,
-    });
+    let emailDelivered = false;
+    try {
+      await sendTipsterCredentials({
+        fullName: target.full_name,
+        username: target.username,
+        temporaryPassword,
+        email: target.email,
+      });
+      emailDelivered = true;
+    } catch (err) {
+      console.error("Failed to send tipster credentials email:", err.message);
+    }
 
     res.json({
-      message: "Password reset and credentials sent.",
-      ...(isDev ? { temporaryPassword } : {}),
+      message: emailDelivered
+        ? "Password reset and credentials emailed."
+        : "Password reset, but the email could not be sent.",
+      emailDelivered,
+      ...(isDev || !emailDelivered ? { temporaryPassword } : {}),
     });
   } catch (err) {
     next(err);
