@@ -35,10 +35,10 @@ export default function Navbar() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-white/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-navy-700 bg-navy text-white">
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2">
-          <span className="font-heading text-xl font-bold tracking-tight text-navy">
+          <span className="font-heading text-xl font-bold tracking-tight text-white">
             Tip<span className="text-accent">Slip</span>
           </span>
         </Link>
@@ -48,10 +48,10 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-full px-4 py-2 text-sm font-semibold tracking-tight transition-colors ${
                 isActive(link.href)
-                  ? "bg-accent-light text-accent-dark"
-                  : "text-muted hover:bg-navy-50 hover:text-navy"
+                  ? "bg-accent text-white hover:bg-accent-dark"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
             >
               {link.label}
@@ -63,7 +63,10 @@ export default function Navbar() {
           {loading ? null : user ? (
             <>
               {dashboardHref && (
-                <Link href={dashboardHref} className="btn btn-outline">
+                <Link
+                  href={dashboardHref}
+                  className="rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                >
                   Dashboard
                 </Link>
               )}
@@ -80,7 +83,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="grid h-10 w-10 place-items-center rounded-lg text-lg text-navy hover:bg-navy-50 md:hidden"
+          className="grid h-10 w-10 place-items-center rounded-lg text-lg text-white hover:bg-white/10 md:hidden"
           aria-label="Toggle navigation menu"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
@@ -90,30 +93,30 @@ export default function Navbar() {
       </div>
 
       {open && (
-        <nav className="border-t border-line bg-white md:hidden">
+        <nav className="border-t border-navy-700 bg-navy md:hidden">
           <div className="container-page flex flex-col py-3">
             {LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className={`rounded-lg px-3 py-3 text-sm font-medium ${
+                className={`rounded-full px-3 py-3 text-sm font-semibold ${
                   isActive(link.href)
-                    ? "bg-accent-light text-accent-dark"
-                    : "text-muted hover:bg-navy-50 hover:text-navy"
+                    ? "bg-accent text-white"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="mt-2 flex flex-col gap-2 border-t border-line pt-3">
+            <div className="mt-2 flex flex-col gap-2 border-t border-navy-700 pt-3">
               {user ? (
                 <>
                   {dashboardHref && (
                     <Link
                       href={dashboardHref}
                       onClick={() => setOpen(false)}
-                      className="btn btn-outline"
+                      className="rounded-full border border-white/25 px-4 py-3 text-sm font-semibold text-white"
                     >
                       Dashboard
                     </Link>
