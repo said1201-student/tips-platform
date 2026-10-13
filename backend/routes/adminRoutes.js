@@ -3,6 +3,7 @@ const express = require("express");
 const { authenticate, requireRole } = require("../middleware/auth");
 const tipsterRoutes = require("./adminTipsterRoutes");
 const tipRoutes = require("./adminTipRoutes");
+const homeImageRoutes = require("./adminHomeImageRoutes");
 const adminController = require("../controllers/adminController");
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get("/stats", adminController.getStats);
 
 router.use("/tipsters", tipsterRoutes);
 router.use("/tips", tipRoutes);
+router.use("/home-images", homeImageRoutes);
 
 module.exports = router;

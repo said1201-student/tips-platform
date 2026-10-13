@@ -41,6 +41,7 @@ router.get("/stats/me", authenticate, requireRole("tipster"), controller.myStats
 
 // Public routes
 router.get("/", controller.listTips);
+router.get("/winners", controller.listWinners);
 router.get("/:id", controller.getTip);
 router.post("/:id/view", controller.recordView);
 router.post("/:id/copy", controller.copyTip);

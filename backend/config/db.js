@@ -70,6 +70,20 @@ async function runMigrations() {
       );
       console.log("Migration: added tips.review_status");
     }
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS home_images (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) DEFAULT NULL,
+        image LONGTEXT NOT NULL,
+        link VARCHAR(500) DEFAULT NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log("Migration: ensured home_images table");
   } finally {
     connection.release();
   }

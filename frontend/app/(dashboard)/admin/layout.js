@@ -6,6 +6,7 @@ const NAV = [
   { href: "/admin/tipsters", label: "Tipsters" },
   { href: "/admin/tips", label: "Tips" },
   { href: "/admin/companies", label: "Companies" },
+  { href: "/admin/home-images", label: "Home Images" },
 ];
 
 export default function AdminDashboardLayout({ children }) {

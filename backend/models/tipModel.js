@@ -136,6 +136,25 @@ async function listByTipster(tipsterId, { includePending = false } = {}) {
   return rows;
 }
 
+async function listWinners(limit = 6) {
+  const [rows] = await pool.query(
+    `SELECT t.id, t.title, t.total_odds, t.status, t.review_status, t.updated_at,
+            t.tipster_id, t.result_image,
+            u.full_name AS tipster_name, u.username AS tipster_username,
+            c.name AS company_name, c.logo AS company_logo, c.website_url AS company_website
+     FROM tips t
+     JOIN users u ON u.id = t.tipster_id
+     JOIN betting_companies c ON c.id = t.company_id
+     WHERE t.status = 'won' AND t.review_status = 'approved'
+       AND t.result_image IS NOT NULL
+       AND u.role = 'tipster' AND u.status = 'active'
+     ORDER BY t.updated_at DESC
+     LIMIT ?`,
+    [Number(limit)]
+  );
+  return rows;
+}
+
 async function create({ tipsterId, companyId, title, slipCode, totalOdds, description, slipImage }) {
   const [result] = await pool.query(
     `INSERT INTO tips (tipster_id, company_id, title, slip_code, total_odds, description, slip_image, status)
@@ -206,6 +225,7 @@ module.exports = {
   count,
   findById,
   listByTipster,
+  listWinners,
   create,
   update,
   remove,

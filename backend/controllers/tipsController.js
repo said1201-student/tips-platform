@@ -91,6 +91,15 @@ async function getTip(req, res, next) {
   }
 }
 
+async function listWinners(req, res, next) {
+  try {
+    const winners = await tipModel.listWinners(9);
+    res.json({ winners });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function recordView(req, res, next) {
   try {
     const tip = await tipModel.findById(req.params.id);
@@ -341,6 +350,7 @@ async function adminReviewTip(req, res, next) {
 module.exports = {
   listTips,
   getTip,
+  listWinners,
   recordView,
   copyTip,
   listMyTips,

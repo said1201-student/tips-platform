@@ -95,6 +95,13 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-muted">Add or edit companies</p>
           </div>
         </Link>
+        <Link href="/admin/home-images" className="card flex items-center gap-3 p-4 transition-shadow hover:shadow-card-hover">
+          <span className="grid h-10 w-10 place-items-center rounded-lg bg-navy text-lg text-white">▦</span>
+          <div>
+            <p className="font-bold text-navy">Home images</p>
+            <p className="text-xs text-muted">Background sports pictures</p>
+          </div>
+        </Link>
       </section>
     </div>
   );
