@@ -9,6 +9,7 @@ const {
   isNumber,
   isOdds,
   isIn,
+  isImageDataUrl,
 } = require("../utils/validators");
 
 const router = express.Router();
@@ -19,6 +20,7 @@ const createSchema = {
   slipCode: [required("Slip code"), maxLen(60, "Slip code")],
   totalOdds: [required("Total odds"), isOdds("Total odds")],
   description: [maxLen(2000, "Description")],
+  slipImage: [isImageDataUrl("Slip image")],
 };
 
 const updateSchema = {
@@ -28,10 +30,13 @@ const updateSchema = {
   totalOdds: [isOdds("Total odds")],
   description: [maxLen(2000, "Description")],
   status: [isIn(["pending", "won", "lost", "void"], "Status")],
+  slipImage: [isImageDataUrl("Slip image")],
+  resultImage: [isImageDataUrl("Result slip")],
 };
 
 // Tipster routes (literal paths first so they are not caught by /:id)
 router.get("/mine", authenticate, requireRole("tipster"), controller.listMyTips);
+router.get("/mine/:id", authenticate, requireRole("tipster"), controller.getMyTip);
 router.get("/stats/me", authenticate, requireRole("tipster"), controller.myStats);
 
 // Public routes

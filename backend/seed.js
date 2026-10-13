@@ -56,6 +56,27 @@ async function main() {
   await connection.query(schema);
   console.log("Tables created (users, betting_companies, tips).");
 
+  try {
+    const [cols] = await connection.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tips'`
+    );
+    const names = new Set(cols.map((c) => c.COLUMN_NAME));
+    if (!names.has("slip_image")) {
+      await connection.query("ALTER TABLE tips ADD COLUMN slip_image LONGTEXT NULL");
+    }
+    if (!names.has("result_image")) {
+      await connection.query("ALTER TABLE tips ADD COLUMN result_image LONGTEXT NULL");
+    }
+    if (!names.has("review_status")) {
+      await connection.query(
+        "ALTER TABLE tips ADD COLUMN review_status ENUM('pending_review','approved','rejected') NOT NULL DEFAULT 'pending_review'"
+      );
+    }
+  } catch (err) {
+    console.warn("Could not run tip column migrations:", err.message);
+  }
+
   const adminHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
   const tipsterHash = await bcrypt.hash(TRIAL_PASSWORD, 10);
 
@@ -130,8 +151,8 @@ async function main() {
     for (const t of tips) {
       await connection.query(
         `INSERT INTO tips
-          (tipster_id, company_id, title, slip_code, total_odds, description, status, views, copy_count)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          (tipster_id, company_id, title, slip_code, total_odds, description, status, views, copy_count, review_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved');`,
         t
       );
     }

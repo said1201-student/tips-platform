@@ -96,5 +96,6 @@ module.exports = {
   isOdds,
   isIn,
   isUrl,
+  isImageDataUrl,
   isBlank,
 };

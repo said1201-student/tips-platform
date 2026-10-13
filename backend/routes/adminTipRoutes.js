@@ -21,6 +21,11 @@ router.patch(
   validate({ status: [required("Status"), isIn(["pending", "won", "lost", "void"], "Status")] }),
   controller.adminSetStatus
 );
+router.patch(
+  "/:id/review",
+  validate({ action: [required("Action"), isIn(["approve", "reject"], "Action")] }),
+  controller.adminReviewTip
+);
 router.put("/:id", validate(updateSchema), controller.updateTip);
 router.delete("/:id", controller.deleteTip);
 

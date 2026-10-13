@@ -26,6 +26,17 @@ function withTrending(tip) {
 
 const STATUS_VALUES = ["pending", "won", "lost", "void"];
 
+const IMAGE_DATA_URL_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
+
+function normalizeImage(value, label = "Image") {
+  if (value === undefined || value === null) return undefined;
+  if (value === "") return "";
+  if (typeof value !== "string" || value.length > 6000000 || !IMAGE_DATA_URL_RE.test(value)) {
+    throw new ApiError(422, `${label} must be a valid image (PNG/JPG/WebP/GIF, max 4 MB).`);
+  }
+  return value;
+}
+
 // ---------- Public ----------
 
 async function listTips(req, res, next) {
@@ -112,8 +123,21 @@ async function copyTip(req, res, next) {
 
 async function listMyTips(req, res, next) {
   try {
-    const tips = await tipModel.listByTipster(req.user.id);
+    const tips = await tipModel.listByTipster(req.user.id, { includePending: true });
     res.json({ tips: tips.map(withTrending) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getMyTip(req, res, next) {
+  try {
+    const tip = await tipModel.findById(req.params.id, { approvedOnly: false });
+    if (!tip) throw new ApiError(404, "Tip not found.");
+    if (req.user.id !== tip.tipster_id) {
+      throw new ApiError(403, "You can only view your own tips.");
+    }
+    res.json({ tip: withTrending(tip) });
   } catch (err) {
     next(err);
   }
@@ -121,7 +145,7 @@ async function listMyTips(req, res, next) {
 
 async function myStats(req, res, next) {
   try {
-    const raw = await tipModel.statsForTipster(req.user.id);
+    const raw = await tipModel.statsForTipster(req.user.id, { approvedOnly: false });
     const stats = {
       total_tips: Number(raw.total_tips) || 0,
       won: Number(raw.won) || 0,
@@ -139,7 +163,7 @@ async function myStats(req, res, next) {
 
 async function createTip(req, res, next) {
   try {
-    const { companyId, title, slipCode, totalOdds, description } = req.body;
+    const { companyId, title, slipCode, totalOdds, description, slipImage } = req.body;
 
     const company = await companyModel.findById(companyId);
     if (!company) throw new ApiError(400, "Please choose a valid betting company.");
@@ -154,6 +178,7 @@ async function createTip(req, res, next) {
       slipCode,
       totalOdds,
       description,
+      slipImage: normalizeImage(slipImage, "Slip image"),
     });
 
     res.status(201).json({ message: "Tip created.", tip: withTrending(tip) });
@@ -174,7 +199,16 @@ async function loadOwnedTip(req) {
 async function updateTip(req, res, next) {
   try {
     const tip = await loadOwnedTip(req);
-    const { companyId, title, slipCode, totalOdds, description, status } = req.body;
+    const {
+      companyId,
+      title,
+      slipCode,
+      totalOdds,
+      description,
+      status,
+      slipImage,
+      resultImage,
+    } = req.body;
 
     const fields = {};
     if (title !== undefined) fields.title = title;
@@ -190,13 +224,16 @@ async function updateTip(req, res, next) {
       fields.company_id = companyId;
     }
 
-    // Only admins may change the result status.
-    if (status !== undefined && req.user.role === "admin") {
+    // The owner (or an admin) may mark the result once the matches finish.
+    if (status !== undefined) {
       if (!STATUS_VALUES.includes(status)) {
         throw new ApiError(400, "Invalid status.");
       }
       fields.status = status;
     }
+
+    if (slipImage !== undefined) fields.slip_image = normalizeImage(slipImage, "Slip image");
+    if (resultImage !== undefined) fields.result_image = normalizeImage(resultImage, "Result slip");
 
     const updated = await tipModel.update(tip.id, fields);
     res.json({ message: "Tip updated.", tip: withTrending(updated) });
@@ -232,6 +269,7 @@ async function adminListTips(req, res, next) {
       limit: perPage,
       offset: (page - 1) * perPage,
       activeTipstersOnly: false,
+      includePending: true,
     };
 
     const [tips, total] = await Promise.all([
@@ -256,11 +294,31 @@ async function adminListTips(req, res, next) {
 async function adminSetStatus(req, res, next) {
   try {
     const { status } = req.body;
-    const tip = await tipModel.findById(req.params.id);
+    const tip = await tipModel.findById(req.params.id, { approvedOnly: false });
     if (!tip) throw new ApiError(404, "Tip not found.");
 
     const updated = await tipModel.update(tip.id, { status });
     res.json({ message: `Tip marked as ${status}.`, tip: withTrending(updated) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function adminReviewTip(req, res, next) {
+  try {
+    const { action } = req.body;
+    const tip = await tipModel.findById(req.params.id, { approvedOnly: false });
+    if (!tip) throw new ApiError(404, "Tip not found.");
+
+    const reviewStatus = action === "approve" ? "approved" : "rejected";
+    const updated = await tipModel.update(tip.id, { review_status: reviewStatus });
+    res.json({
+      message:
+        action === "approve"
+          ? "Tip approved and is now public."
+          : "Tip rejected. It will not be shown publicly.",
+      tip: withTrending(updated),
+    });
   } catch (err) {
     next(err);
   }
@@ -272,11 +330,13 @@ module.exports = {
   recordView,
   copyTip,
   listMyTips,
+  getMyTip,
   myStats,
   createTip,
   updateTip,
   deleteTip,
   adminListTips,
   adminSetStatus,
+  adminReviewTip,
   STATUS_VALUES,
 };

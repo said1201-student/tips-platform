@@ -42,6 +42,9 @@ CREATE TABLE IF NOT EXISTS tips (
   total_odds DECIMAL(8, 2) NOT NULL,
   description TEXT DEFAULT NULL,
   status ENUM('pending', 'won', 'lost', 'void') NOT NULL DEFAULT 'pending',
+  slip_image LONGTEXT DEFAULT NULL,
+  result_image LONGTEXT DEFAULT NULL,
+  review_status ENUM('pending_review', 'approved', 'rejected') NOT NULL DEFAULT 'pending_review',
   views INT UNSIGNED NOT NULL DEFAULT 0,
   copy_count INT UNSIGNED NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -50,6 +53,7 @@ CREATE TABLE IF NOT EXISTS tips (
   KEY idx_tips_tipster (tipster_id),
   KEY idx_tips_company (company_id),
   KEY idx_tips_status (status),
+  KEY idx_tips_review (review_status),
   KEY idx_tips_created (created_at),
   CONSTRAINT fk_tips_tipster FOREIGN KEY (tipster_id)
     REFERENCES users (id) ON DELETE CASCADE,

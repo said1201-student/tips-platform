@@ -98,7 +98,7 @@ async function leaderboard() {
             COALESCE(SUM(t.status = 'lost'), 0) AS lost,
             COALESCE(SUM(t.status = 'pending'), 0) AS pending
      FROM users u
-     LEFT JOIN tips t ON t.tipster_id = u.id
+     LEFT JOIN tips t ON t.tipster_id = u.id AND t.review_status = 'approved'
      WHERE u.role = 'tipster' AND u.status = 'active'
      GROUP BY u.id
      HAVING total_tips > 0
@@ -116,7 +116,7 @@ async function latestTipsters(limit = 4) {
             COALESCE(SUM(t.status = 'lost'), 0) AS lost,
             COALESCE(SUM(t.status = 'pending'), 0) AS pending
      FROM users u
-     LEFT JOIN tips t ON t.tipster_id = u.id
+     LEFT JOIN tips t ON t.tipster_id = u.id AND t.review_status = 'approved'
      WHERE u.role = 'tipster' AND u.status = 'active'
      GROUP BY u.id
      ORDER BY u.created_at DESC, u.id DESC

@@ -5,7 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 
-const { testConnection } = require("./config/db");
+const { testConnection, runMigrations } = require("./config/db");
 const routes = require("./routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
@@ -21,7 +21,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "8mb" }));
 app.use(cookieParser());
 
 // Basic protection against brute-force on authentication endpoints.
@@ -43,6 +43,8 @@ async function start() {
   try {
     await testConnection();
     console.log("Database connected.");
+    await runMigrations();
+    console.log("Migrations applied.");
   } catch (err) {
     console.error("Could not connect to the database:", err.message);
     console.error("Check your .env settings and make sure MySQL is running.");
