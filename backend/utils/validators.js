@@ -86,6 +86,19 @@ function isUrl(label = "Website") {
   };
 }
 
+const IMAGE_DATA_URL_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
+
+function isImageDataUrl(label = "Image") {
+  return (value) => {
+    if (isBlank(value)) return null;
+    if (typeof value !== "string") return `${label} must be valid image data.`;
+    if (value.length > 6000000) return `${label} must be at most 4 MB.`;
+    return IMAGE_DATA_URL_RE.test(value)
+      ? null
+      : `${label} must be a valid image (PNG, JPG, WebP or GIF).`;
+  };
+}
+
 module.exports = {
   required,
   maxLen,
