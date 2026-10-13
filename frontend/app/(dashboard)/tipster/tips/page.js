@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Spinner, ErrorState, EmptyState } from "@/components/States";
 import StatusBadge from "@/components/StatusBadge";
+import ReviewBadge from "@/components/ReviewBadge";
 import { formatDate, formatOdds, formatNumber } from "@/lib/format";
 
 export default function MyTipsPage() {
@@ -85,9 +86,12 @@ export default function MyTipsPage() {
               className="border-b border-line px-5 py-4 last:border-0 lg:grid lg:grid-cols-[1fr_120px_80px_100px_100px_120px] lg:items-center lg:gap-3"
             >
               <div className="min-w-0">
-                <Link href={`/tips/${tip.id}`} className="font-semibold text-navy hover:text-accent-dark">
-                  {tip.title}
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={`/tipster/tips/${tip.id}/edit`} className="font-semibold text-navy hover:text-accent-dark">
+                    {tip.title}
+                  </Link>
+                  <ReviewBadge reviewStatus={tip.review_status} />
+                </div>
                 <p className="mt-0.5 text-xs text-muted">
                   {tip.company_name} · {formatDate(tip.created_at)}
                 </p>

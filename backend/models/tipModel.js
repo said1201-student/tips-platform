@@ -44,12 +44,17 @@ async function list({
   offset = 0,
   activeTipstersOnly = true,
   includePending = false,
+  reviewStatus,
 } = {}) {
   const where = [];
   const values = [];
 
   if (activeTipstersOnly) where.push("u.role = 'tipster' AND u.status = 'active'");
   if (!includePending) where.push("t.review_status = 'approved'");
+  if (reviewStatus) {
+    where.push("t.review_status = ?");
+    values.push(reviewStatus);
+  }
   if (search) {
     where.push("(t.title LIKE ? OR t.slip_code LIKE ?)");
     values.push(`%${search}%`, `%${search}%`);
@@ -78,11 +83,15 @@ async function list({
   return rows;
 }
 
-async function count({ search, companyId, tipster, status, activeTipstersOnly = true, includePending = false } = {}) {
+async function count({ search, companyId, tipster, status, activeTipstersOnly = true, includePending = false, reviewStatus } = {}) {
   const where = [];
   const values = [];
   if (activeTipstersOnly) where.push("u.role = 'tipster' AND u.status = 'active'");
   if (!includePending) where.push("t.review_status = 'approved'");
+  if (reviewStatus) {
+    where.push("t.review_status = ?");
+    values.push(reviewStatus);
+  }
   if (search) {
     where.push("(t.title LIKE ? OR t.slip_code LIKE ?)");
     values.push(`%${search}%`, `%${search}%`);

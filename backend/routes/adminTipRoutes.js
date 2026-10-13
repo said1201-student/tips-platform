@@ -16,6 +16,7 @@ const updateSchema = {
 };
 
 router.get("/", controller.adminListTips);
+router.get("/:id", controller.adminGetTip);
 router.patch(
   "/:id/status",
   validate({ status: [required("Status"), isIn(["pending", "won", "lost", "void"], "Status")] }),

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Spinner, ErrorState, EmptyState } from "@/components/States";
 import StatusBadge from "@/components/StatusBadge";
+import ReviewBadge from "@/components/ReviewBadge";
 import { formatDate, formatOdds, formatNumber } from "@/lib/format";
 
 const SORTS = [
@@ -22,6 +23,13 @@ const STATUSES = [
   { value: "void", label: "Void" },
 ];
 
+const REVIEWS = [
+  { value: "", label: "All reviews" },
+  { value: "pending_review", label: "Waiting approval" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+];
+
 export default function AdminTipsPage() {
   const [tips, setTips] = useState(null);
   const [companies, setCompanies] = useState([]);
@@ -30,6 +38,7 @@ export default function AdminTipsPage() {
   const [filters, setFilters] = useState({
     search: "",
     status: "",
+    review: "",
     companyId: "",
     sort: "newest",
   });
@@ -37,7 +46,7 @@ export default function AdminTipsPage() {
   const load = useCallback(() => {
     api
       .get(
-        `/admin/tips?search=${encodeURIComponent(filters.search)}&status=${filters.status}&company_id=${filters.companyId}&sort=${filters.sort}&per_page=100`
+        `/admin/tips?search=${encodeURIComponent(filters.search)}&status=${filters.status}&review=${filters.review}&company_id=${filters.companyId}&sort=${filters.sort}&per_page=100`
       )
       .then((res) => {
         setTips(res.tips);
@@ -65,6 +74,18 @@ export default function AdminTipsPage() {
       setTips((list) => list.map((t) => (t.id === tip.id ? { ...t, status } : t)));
     } catch (err) {
       setNotice(err.message || "Could not update status.");
+    }
+  }
+
+  async function handleReview(tip, action) {
+    try {
+      const res = await api.patch(`/admin/tips/${tip.id}/review`, { action });
+      setNotice(res.message);
+      setTips((list) =>
+        list.map((t) => (t.id === tip.id ? { ...t, review_status: action === "approve" ? "approved" : "rejected" } : t))
+      );
+    } catch (err) {
+      setNotice(err.message || "Could not update this tip.");
     }
   }
 
@@ -115,6 +136,14 @@ export default function AdminTipsPage() {
           </select>
         </div>
         <div>
+          <label className="label" htmlFor="review">Review</label>
+          <select id="review" className="input" value={filters.review} onChange={(e) => setFilters({ ...filters, review: e.target.value })}>
+            {REVIEWS.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="label" htmlFor="companyId">Company</label>
           <select id="companyId" className="input" value={filters.companyId} onChange={(e) => setFilters({ ...filters, companyId: e.target.value })}>
             <option value="">All companies</option>
@@ -137,7 +166,7 @@ export default function AdminTipsPage() {
         <EmptyState title="No tips found" message="Adjust your filters to see more tips." icon="🔍" />
       ) : (
         <div className="card overflow-x-auto">
-          <table className="w-full min-w-[900px] text-sm">
+          <table className="w-full min-w-[1080px] text-sm">
             <thead>
               <tr className="border-b border-line bg-surface text-left text-[11px] font-bold text-muted">
                 <th className="px-5 py-3">Tip</th>
@@ -145,6 +174,7 @@ export default function AdminTipsPage() {
                 <th className="px-3 py-3 text-center">Odds</th>
                 <th className="px-3 py-3 text-center">Views / Copied</th>
                 <th className="px-3 py-3">Status</th>
+                <th className="px-3 py-3">Review</th>
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -179,6 +209,34 @@ export default function AdminTipsPage() {
                         <option key={s.value} value={s.value}>{s.label}</option>
                       ))}
                     </select>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex flex-col items-start gap-1.5">
+                      <ReviewBadge reviewStatus={tip.review_status} />
+                      {tip.review_status === "pending_review" ? (
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => handleReview(tip, "approve")}
+                            className="btn btn-accent !px-2.5 !py-1 !text-xs"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReview(tip, "reject")}
+                            className="btn btn-danger !px-2.5 !py-1 !text-xs"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : tip.review_status === "rejected" ? (
+                        <button
+                          onClick={() => handleReview(tip, "approve")}
+                          className="btn btn-outline !px-2.5 !py-1 !text-xs"
+                        >
+                          Approve anyway
+                        </button>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-2">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { Spinner, ErrorState } from "@/components/States";
+import SlipImageField from "@/components/SlipImageField";
 
 export default function CreateTipPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function CreateTipPage() {
     slipCode: "",
     totalOdds: "",
     description: "",
+    slipImage: "",
   });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
@@ -55,6 +57,7 @@ export default function CreateTipPage() {
         slipCode: form.slipCode.trim().toUpperCase(),
         totalOdds: Number(form.totalOdds),
         description: form.description.trim() || undefined,
+        slipImage: form.slipImage || undefined,
       });
       router.push(`/tipster/tips/${res.tip.id}/edit?created=1`);
       router.refresh();
@@ -71,7 +74,8 @@ export default function CreateTipPage() {
       <div>
         <h1 className="font-heading text-3xl font-bold text-navy">Create Tip</h1>
         <p className="mt-1 text-sm text-muted">
-          Share a new slip code. It will start as <strong>Pending</strong> until a result is set.
+          Share a new slip code. It starts as <strong>Pending approval</strong> and
+          becomes visible to everyone once an administrator approves it.
         </p>
       </div>
 
@@ -153,6 +157,12 @@ export default function CreateTipPage() {
             maxLength={2000}
           />
         </div>
+
+        <SlipImageField
+          label="Slip screenshot (optional, helps the admin verify)"
+          value={form.slipImage}
+          onChange={(v) => setField("slipImage", v || "")}
+        />
 
         <div className="flex gap-3 pt-2">
           <button type="submit" disabled={busy} className="btn btn-accent !px-6">

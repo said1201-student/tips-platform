@@ -16,7 +16,7 @@ export default function AdminEditTipPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    Promise.all([api.get(`/tips/${params.id}`), api.get("/companies?all=1")])
+    Promise.all([api.get(`/admin/tips/${params.id}`), api.get("/companies?all=1")])
       .then(([tipRes, companiesRes]) => {
         setCompanies(companiesRes.companies);
         setForm({

@@ -257,6 +257,9 @@ async function deleteTip(req, res, next) {
 async function adminListTips(req, res, next) {
   try {
     const { search, company_id, tipster, status, sort = "newest" } = req.query;
+    const review = ["pending_review", "approved", "rejected"].includes(req.query.review)
+      ? req.query.review
+      : undefined;
     const page = Math.max(1, Number(req.query.page) || 1);
     const perPage = Math.min(100, Math.max(1, Number(req.query.per_page) || 20));
 
@@ -270,6 +273,7 @@ async function adminListTips(req, res, next) {
       offset: (page - 1) * perPage,
       activeTipstersOnly: false,
       includePending: true,
+      reviewStatus: review,
     };
 
     const [tips, total] = await Promise.all([
@@ -286,6 +290,16 @@ async function adminListTips(req, res, next) {
         total_pages: Math.ceil(total / perPage) || 1,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function adminGetTip(req, res, next) {
+  try {
+    const tip = await tipModel.findById(req.params.id, { approvedOnly: false });
+    if (!tip) throw new ApiError(404, "Tip not found.");
+    res.json({ tip: withTrending(tip) });
   } catch (err) {
     next(err);
   }
@@ -336,6 +350,7 @@ module.exports = {
   updateTip,
   deleteTip,
   adminListTips,
+  adminGetTip,
   adminSetStatus,
   adminReviewTip,
   STATUS_VALUES,

@@ -125,6 +125,32 @@ export default async function TipDetailPage({ params }) {
               <p className="mt-2 text-sm leading-relaxed text-muted">{tip.description}</p>
             </div>
           )}
+
+          {tip.slip_image && (
+            <div className="mt-6">
+              <h2 className="font-heading text-sm font-bold text-navy">Slip</h2>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={tip.slip_image}
+                alt={`Slip for ${tip.title}`}
+                className="mt-3 max-h-96 w-auto rounded-card ring-1 ring-line"
+              />
+            </div>
+          )}
+
+          {tip.result_image && (tip.status === "won" || tip.status === "lost") && (
+            <div className="mt-6">
+              <h2 className="font-heading text-sm font-bold text-navy">
+                Result slip ({tip.status === "won" ? "won" : "lost"})
+              </h2>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={tip.result_image}
+                alt={`Result slip for ${tip.title}`}
+                className="mt-3 max-h-96 w-auto rounded-card ring-1 ring-line"
+              />
+            </div>
+          )}
         </div>
 
         <aside className="card h-fit p-6">
