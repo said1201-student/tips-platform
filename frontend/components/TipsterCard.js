@@ -23,10 +23,19 @@ export default function TipsterCard({ tipster, showRank = false }) {
         </p>
       </div>
       <div className="text-right">
-        <p className="font-heading text-xl font-bold leading-none text-accent-dark">
-          {tipster.win_rate}%
-        </p>
-        <p className="text-[11px] font-semibold text-muted">Win rate</p>
+        {tipster.total_tips > 0 ? (
+          <>
+            <p className="font-heading text-xl font-bold leading-none text-accent-dark">
+              {tipster.win_rate}%
+            </p>
+            <p className="text-[11px] font-semibold text-muted">Win rate</p>
+          </>
+        ) : (
+          <>
+            <p className="font-heading text-xl font-bold leading-none text-accent">New</p>
+            <p className="text-[11px] font-semibold text-muted">Just joined</p>
+          </>
+        )}
       </div>
     </Link>
   );

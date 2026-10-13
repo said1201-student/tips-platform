@@ -31,6 +31,18 @@ async function listLeaderboard(req, res, next) {
   }
 }
 
+// Newest active tipsters for the homepage "New Tipsters" row.
+async function listLatest(req, res, next) {
+  try {
+    const limit = Number(req.query.limit) || 4;
+    const rows = await userModel.latestTipsters(limit);
+    const tipsters = rows.map(withStat);
+    res.json({ tipsters });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Public tipster profile + statistics + recent tips
 async function getProfile(req, res, next) {
   try {
@@ -72,4 +84,4 @@ async function getProfile(req, res, next) {
   }
 }
 
-module.exports = { listLeaderboard, getProfile };
+module.exports = { listLeaderboard, listLatest, getProfile };

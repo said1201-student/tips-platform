@@ -107,6 +107,25 @@ async function leaderboard() {
   return rows;
 }
 
+/** Latest active tipsters (newest first), used on the homepage. */
+async function latestTipsters(limit = 4) {
+  const [rows] = await pool.query(
+    `SELECT u.id, u.full_name, u.username,
+            COUNT(t.id) AS total_tips,
+            COALESCE(SUM(t.status = 'won'), 0) AS won,
+            COALESCE(SUM(t.status = 'lost'), 0) AS lost,
+            COALESCE(SUM(t.status = 'pending'), 0) AS pending
+     FROM users u
+     LEFT JOIN tips t ON t.tipster_id = u.id
+     WHERE u.role = 'tipster' AND u.status = 'active'
+     GROUP BY u.id
+     ORDER BY u.created_at DESC, u.id DESC
+     LIMIT ?`,
+    [Number(limit) || 4]
+  );
+  return rows;
+}
+
 async function findByUsernamePublic(username) {
   const [rows] = await pool.query(
     `SELECT ${PUBLIC_FIELDS} FROM users
@@ -128,5 +147,6 @@ module.exports = {
   remove,
   listTipsters,
   leaderboard,
+  latestTipsters,
   findByUsernamePublic,
 };

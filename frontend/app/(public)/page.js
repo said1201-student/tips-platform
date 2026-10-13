@@ -18,16 +18,20 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [trendingRes, latestRes, leaderboardRes, companiesRes] = await Promise.all([
+  const [trendingRes, latestRes, leaderboardRes, newTipstersRes, companiesRes] = await Promise.all([
     serverGet("/tips?sort=trending&per_page=6"),
     serverGet("/tips?sort=newest&per_page=6"),
     serverGet("/tipsters"),
+    serverGet("/tipsters/latest?limit=4"),
     serverGet("/companies"),
   ]);
 
   const trending = trendingRes.data?.tips || [];
   const latest = latestRes.data?.tips || [];
   const tipsters = (leaderboardRes.data?.tipsters || []).slice(0, 5);
+  const newTipsters = (newTipstersRes.data?.tipsters || []).filter(
+    (t) => !tipsters.some((x) => x.id === t.id)
+  );
   const companies = companiesRes.data?.companies || [];
 
   const tipOfTheDay = trending[0] || null;
@@ -160,6 +164,18 @@ export default async function HomePage() {
             </div>
           )}
         </section>
+
+        {/* NEW TIPSTERS */}
+        {newTipsters.length > 0 && (
+          <section className="mb-14">
+            <SectionHeading title="New Tipsters" href="/tipsters" />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {newTipsters.map((t) => (
+                <TipsterCard key={t.id} tipster={t} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* TOP TIPSTERS */}
         <section className="mb-14">
