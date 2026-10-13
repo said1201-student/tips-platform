@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import api from "@/lib/api";
+import { copyText } from "@/lib/clipboard";
 
 export default function CopyButton({
   code,
@@ -20,20 +21,7 @@ export default function CopyButton({
     setError("");
     setBusy(true);
     try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(code);
-      } else {
-        // Fallback for non-secure contexts / older browsers
-        const el = document.createElement("textarea");
-        el.value = code;
-        el.style.position = "fixed";
-        el.style.opacity = "0";
-        document.body.appendChild(el);
-        el.focus();
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
-      }
+      await copyText(code);
 
       setCopied(true);
       timer.current = setTimeout(() => setCopied(false), 2500);

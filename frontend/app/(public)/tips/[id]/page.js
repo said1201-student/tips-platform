@@ -4,6 +4,7 @@ import { serverGet } from "@/lib/serverApi";
 import { formatDate, formatNumber, formatOdds } from "@/lib/format";
 import StatusBadge from "@/components/StatusBadge";
 import CopyButton from "@/components/CopyButton";
+import OpenCompanyButton from "@/components/OpenCompanyButton";
 import ViewTracker from "@/components/ViewTracker";
 import { ErrorState } from "@/components/States";
 
@@ -134,14 +135,14 @@ export default async function TipDetailPage({ params }) {
             <CopyButton code={tip.slip_code} tipId={tip.id} label="Copy slip code" />
           </div>
 
-          <a
-            href={tip.company_website}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="btn btn-navy mt-3 w-full"
-          >
-            Open {tip.company_name}
-          </a>
+          <div className="mt-3">
+            <OpenCompanyButton
+              name={tip.company_name}
+              url={tip.company_website}
+              code={tip.slip_code}
+              tipId={tip.id}
+            />
+          </div>
           <p className="mt-3 text-center text-[11px] text-muted">
             Betting happens on {tip.company_name}&apos;s website. TipSlip only
             shares the code.

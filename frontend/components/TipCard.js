@@ -1,6 +1,7 @@
 import Link from "next/link";
 import StatusBadge from "./StatusBadge";
 import CopyButton from "./CopyButton";
+import OpenCompanyButton from "./OpenCompanyButton";
 import { formatDate, formatOdds, formatNumber } from "@/lib/format";
 
 export default function TipCard({ tip }) {
@@ -58,6 +59,14 @@ export default function TipCard({ tip }) {
           View tip
         </Link>
         <CopyButton code={tip.slip_code} tipId={tip.id} label="Copy" />
+        <div className="col-span-2">
+          <OpenCompanyButton
+            name={tip.company_name}
+            url={tip.company_website}
+            code={tip.slip_code}
+            tipId={tip.id}
+          />
+        </div>
       </div>
     </article>
   );
