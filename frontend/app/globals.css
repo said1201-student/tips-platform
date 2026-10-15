@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #f5f0f3;
-  --foreground: #1a0816;
+  --background: #f2f2f3;
+  --foreground: #252a2d;
 }
 
 body {
@@ -33,13 +33,13 @@ h6 {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-accent {
-    @apply bg-navy text-white shadow-sm hover:bg-navy-700;
+    @apply bg-accent text-navy shadow-sm hover:bg-accent-dark hover:text-white;
   }
   .btn-navy {
     @apply bg-navy text-white hover:bg-navy-700;
   }
   .btn-outline {
-    @apply border border-navy/20 bg-transparent text-navy hover:border-navy-700 hover:bg-navy-50;
+    @apply border border-navy/25 bg-transparent text-navy hover:border-navy hover:bg-navy-50;
   }
   .btn-ghost {
     @apply text-navy hover:bg-navy-50;

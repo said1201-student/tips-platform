@@ -45,11 +45,11 @@ export default async function HomePage() {
     : {
         badge: "bg-navy/5 text-navy",
         title: "text-navy",
-        em: "text-accent",
+        em: "text-accent-dark",
         text: "text-muted",
         secondaryBtn: "",
         statCard: "bg-white ring-1 ring-line",
-        statValue: "text-accent",
+        statValue: "text-accent-dark",
         statLabel: "text-muted",
       };
 
@@ -112,7 +112,7 @@ export default async function HomePage() {
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="font-heading text-3xl font-bold text-navy sm:text-4xl">
-                  Recent <em className="font-medium italic text-accent">Winners</em>
+                  Recent <em className="font-medium italic text-accent-dark">Winners</em>
                 </h2>
                 <p className="mt-1 text-sm text-muted">
                   Tipsters proving their wins with their betting slips.
@@ -155,7 +155,7 @@ export default async function HomePage() {
                       </span>
                     </p>
                     <p className="mt-2 text-sm font-semibold text-navy">
-                      Total odds: <span className="text-accent">{win.total_odds}</span>
+                      Total odds: <span className="text-accent-dark">{win.total_odds}</span>
                     </p>
                   </div>
                 </Link>

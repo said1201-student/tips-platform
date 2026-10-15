@@ -50,7 +50,7 @@ export default function Navbar() {
               href={link.href}
               className={`rounded-full px-4 py-2 text-sm font-semibold tracking-tight transition-colors ${
                 isActive(link.href)
-                  ? "bg-accent text-white hover:bg-accent-dark"
+                  ? "bg-accent text-navy hover:bg-accent-dark hover:text-white"
                   : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
             >
@@ -102,7 +102,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className={`rounded-full px-3 py-3 text-sm font-semibold ${
                   isActive(link.href)
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-navy"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >

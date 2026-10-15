@@ -8,30 +8,30 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Ink scale — OneForma plum-black.
+        // Ink scale — betpawa-style charcoal.
         navy: {
-          DEFAULT: "#1A0816",
-          50: "#F5F0F3",
-          100: "#EBE0E7",
-          700: "#3A1A2F",
-          800: "#2A101F",
-          900: "#1A0816",
-          950: "#0F040B",
+          DEFAULT: "#252A2D",
+          50: "#F2F2F3",
+          100: "#E4E6E7",
+          700: "#3A4043",
+          800: "#171A1C",
+          900: "#171A1C",
+          950: "#0F1112",
         },
-        // Primary brand colour — OneForma magenta.
+        // Primary brand colour — betpawa lime green.
         accent: {
-          DEFAULT: "#CD128A",
-          dark: "#9E0D6A",
-          light: "#FBE3F4",
+          DEFAULT: "#9CE800",
+          dark: "#5B8506",
+          light: "#ECFCCB",
         },
-        surface: "#F5F0F3",
-        line: "#E6DAE2",
-        muted: "#7C5A70",
+        surface: "#F2F2F3",
+        line: "#E4E6E7",
+        muted: "#7A8185",
         status: {
-          won: "#16A34A",
-          lost: "#DC2626",
-          pending: "#F59E0B",
-          void: "#8A6E7E",
+          won: "#5B8506",
+          lost: "#CC371B",
+          pending: "#FF7A00",
+          void: "#7A8185",
         },
       },
       fontFamily: {

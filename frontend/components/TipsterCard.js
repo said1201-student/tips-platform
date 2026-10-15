@@ -32,7 +32,7 @@ export default function TipsterCard({ tipster, showRank = false }) {
           </>
         ) : (
           <>
-            <p className="font-heading text-xl font-bold leading-none text-accent">New</p>
+            <p className="font-heading text-xl font-bold leading-none text-accent-dark">New</p>
             <p className="text-[11px] font-semibold text-muted">Just joined</p>
           </>
         )}
